@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F7">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+            <Button
+                android:id="@+id/btnGameBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Back"
+                android:backgroundTint="#9E9E9E"/>
+            <TextView
+                android:id="@+id/tvLevelTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Level 1"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E"
+                android:gravity="center" />
+            <Button
+                android:id="@+id/btnGameSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Settings"
+                android:backgroundTint="#9E9E9E"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingBottom="8dp"
+            android:gravity="center_vertical">
+            <TextView
+                android:id="@+id/tvHearts"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="♥♥♥"
+                android:textSize="32sp"
+                android:textColor="#E53935" />
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+            <TextView
+                android:id="@+id/tvArrows"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Arrows: 3"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#1A237E" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTutorial"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tap arrows to slide them out.\nDon't let them crash!"
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:textColor="#757575"
+            android:paddingBottom="8dp"
+            android:visibility="gone" />
+
+        <FrameLayout
+            android:id="@+id/gameContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center">
+            <Button
+                android:id="@+id/btnHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hint (3)"
+                android:backgroundTint="#2196F3"
+                android:layout_marginEnd="16dp"/>
+            <Button
+                android:id="@+id/btnUndo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Undo"
+                android:backgroundTint="#2196F3"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/overlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="#DDFFFFFF"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+        
+        <TextView
+            android:id="@+id/tvOverlayTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="LEVEL CLEARED!"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:textColor="#1A237E"
+            android:layout_marginBottom="32dp" />
+
+        <Button
+            android:id="@+id/btnOverlayPrimary"
+            android:layout_width="200dp"
+            android:layout_height="60dp"
+            android:text="NEXT LEVEL"
+            android:textSize="20sp"
+            android:backgroundTint="#2196F3"
+            android:layout_marginBottom="16dp" />
+            
+        <Button
+            android:id="@+id/btnOverlaySecondary"
+            android:layout_width="200dp"
+            android:layout_height="60dp"
+            android:text="MENU"
+            android:textSize="20sp"
+            android:backgroundTint="#9E9E9E" />
+    </LinearLayout>
+</FrameLayout>
