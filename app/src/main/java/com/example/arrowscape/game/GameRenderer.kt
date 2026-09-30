@@ -8,7 +8,6 @@ import android.graphics.PathMeasure
 import android.graphics.RectF
 
 class GameRenderer {
-    // Polished empty-slot look for the grid
     private val slotPaint = Paint().apply {
         color = Color.parseColor("#E8E8EC")
         style = Paint.Style.FILL
@@ -29,23 +28,17 @@ class GameRenderer {
         isAntiAlias = true
     }
 
-    private val textPaint = Paint().apply {
-        color = Color.parseColor("#1A237E")
-        isAntiAlias = true
-        textSize = 80f
-        textAlign = Paint.Align.CENTER
-        isFakeBoldText = true
-    }
-
     private val drawPath = Path()
     private val headPath = Path()
+    private val renderPath = Path()
     private val pathMeasure = PathMeasure()
     private val pos = FloatArray(2)
     private val tan = FloatArray(2)
     private val cellRect = RectF()
+    private val extPath = mutableListOf<Point>()
 
     fun onSizeChanged(gameState: GameState) {
-        arrowPaint.strokeWidth = gameState.cellSize * 0.55f // Slightly thicker arrows
+        arrowPaint.strokeWidth = gameState.cellSize * 0.55f
     }
 
     fun draw(canvas: Canvas, gameState: GameState, view: GameView) {
@@ -70,7 +63,6 @@ class GameRenderer {
                 canvas.save()
                 canvas.translate(shakeOffset * arrow.exitDirection.dx, shakeOffset * arrow.exitDirection.dy)
                 
-                // Flash red slightly
                 val oldColor = arrowPaint.color
                 arrowPaint.color = Color.parseColor("#E53935")
                 headPaint.color = Color.parseColor("#E53935")
@@ -112,7 +104,7 @@ class GameRenderer {
         canvas.translate(x, y)
         canvas.rotate(angle)
         
-        val size = cs * 0.45f // Slightly larger arrowhead
+        val size = cs * 0.45f
         headPath.reset()
         headPath.moveTo(size, 0f)
         headPath.lineTo(-size * 0.6f, size * 0.7f)
@@ -124,7 +116,7 @@ class GameRenderer {
     }
 
     private fun drawEscapingArrow(canvas: Canvas, arrow: Arrow, progress: Float, cs: Float, offX: Float, offY: Float, gridWidth: Int, gridHeight: Int) {
-        val extPath = mutableListOf<Point>()
+        extPath.clear()
         extPath.addAll(arrow.path)
         var curr = arrow.path.last()
         val maxDist = maxOf(gridWidth, gridHeight) + 3
@@ -148,7 +140,7 @@ class GameRenderer {
         val startD = offset
         val endD = offset + originalLength
 
-        val renderPath = Path()
+        renderPath.reset()
         pathMeasure.getSegment(startD, endD, renderPath, true)
         canvas.drawPath(renderPath, arrowPaint)
 

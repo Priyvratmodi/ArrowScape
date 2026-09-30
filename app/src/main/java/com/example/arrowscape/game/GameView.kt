@@ -10,6 +10,7 @@ import android.media.ToneGenerator
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.AccelerateInterpolator
@@ -31,11 +32,34 @@ class GameView(context: Context) : View(context) {
     var onLevelWon: (() -> Unit)? = null
     var onGameOver: (() -> Unit)? = null
 
-    // Lightweight audio using built-in tones
-    private val toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+    // Safely lazily initialized audio
+    private var toneGen: ToneGenerator? = null
     private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    private var currentAnim: ValueAnimator? = null
     
     private val prefs = context.getSharedPreferences("ArrowScapePrefs", Context.MODE_PRIVATE)
+
+    init {
+        try {
+            toneGen = ToneGenerator(AudioManager.STREAM_MUSIC, 100)
+        } catch (e: Exception) {
+            Log.e("GameView", "Failed to initialize ToneGenerator", e)
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        // CRITICAL BUG FIX: Free native audio tracks when the view is detached 
+        // to prevent System Server / Audio mediaserver crash and phone reboot.
+        try {
+            toneGen?.release()
+            toneGen = null
+        } catch (e: Exception) {
+            Log.e("GameView", "Failed to release ToneGenerator", e)
+        }
+        currentAnim?.cancel()
+        currentAnim = null
+    }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -60,21 +84,30 @@ class GameView(context: Context) : View(context) {
 
     private fun playSound(tone: Int, duration: Int) {
         if (prefs.getBoolean("sound", true)) {
-            toneGen.startTone(tone, duration)
+            try {
+                toneGen?.startTone(tone, duration)
+            } catch (e: Exception) {
+                Log.e("GameView", "Failed to play sound", e)
+            }
         }
     }
 
     private fun playVibration(duration: Long) {
         if (prefs.getBoolean("vibration", true)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
-            } else {
-                vibrator.vibrate(duration)
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
+                } else {
+                    vibrator.vibrate(duration)
+                }
+            } catch (e: Exception) {
+                Log.e("GameView", "Failed to play vibration", e)
             }
         }
     }
 
     private fun handleMoveResult(result: MoveResult) {
+        currentAnim?.cancel()
         when (result) {
             is Escaped -> {
                 isAnimating = true
@@ -82,22 +115,23 @@ class GameView(context: Context) : View(context) {
                 playVibration(20)
                 
                 escapingArrow = result.arrow
-                val anim = ValueAnimator.ofFloat(0f, 1f)
-                anim.duration = 350
-                anim.interpolator = AccelerateInterpolator()
-                anim.addUpdateListener { 
-                    escapingProgress = it.animatedValue as Float
-                    invalidate()
-                }
-                anim.addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        isAnimating = false
-                        escapingArrow = null
+                currentAnim = ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 350
+                    interpolator = AccelerateInterpolator()
+                    addUpdateListener { 
+                        escapingProgress = it.animatedValue as Float
                         invalidate()
-                        checkGameEnd()
                     }
-                })
-                anim.start()
+                    addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            isAnimating = false
+                            escapingArrow = null
+                            invalidate()
+                            checkGameEnd()
+                        }
+                    })
+                    start()
+                }
             }
             is Blocked -> {
                 isAnimating = true
@@ -105,21 +139,22 @@ class GameView(context: Context) : View(context) {
                 playVibration(80)
                 
                 blockedArrow = result.arrow
-                val anim = ValueAnimator.ofFloat(0f, 1f)
-                anim.duration = 300
-                anim.addUpdateListener { 
-                    blockedProgress = it.animatedValue as Float
-                    invalidate()
-                }
-                anim.addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        isAnimating = false
-                        blockedArrow = null
+                currentAnim = ValueAnimator.ofFloat(0f, 1f).apply {
+                    duration = 300
+                    addUpdateListener { 
+                        blockedProgress = it.animatedValue as Float
                         invalidate()
-                        checkGameEnd()
                     }
-                })
-                anim.start()
+                    addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            isAnimating = false
+                            blockedArrow = null
+                            invalidate()
+                            checkGameEnd()
+                        }
+                    })
+                    start()
+                }
             }
             Ignored -> {}
         }
